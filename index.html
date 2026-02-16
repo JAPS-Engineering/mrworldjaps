@@ -1,0 +1,655 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, Globe, MapPin, Users, Coins, Languages, Landmark, Trophy, Utensils, History, Info, X, Filter, Brain, ArrowRight, RotateCcw, CheckCircle2, AlertCircle } from 'lucide-react';
+
+// Base de datos completa de 195 países soberanos (Datos 2026)
+const countryData = [
+  {"id": "af", "name": "Afganistán", "capital": "Kabul", "pop": "45,047,000", "gdp": "$20.2B", "lang": "Pashto/Dari", "religion": "Islam", "attraction": "Minarete de Jam", "fact": "Alguna vez tuvo las estatuas de Buda más grandes del mundo.", "continent": "Asia", "sport": "Cricket", "food": "Kabuli Pulao", "history": "Independencia del Reino Unido en 1919"},
+  {"id": "al", "name": "Albania", "capital": "Tirana", "pop": "2,832,000", "gdp": "$21.5B", "lang": "Albanés", "religion": "Islam", "attraction": "Castillo de Gjirokastër", "fact": "Tiene más de 170,000 búnkeres.", "continent": "Europa", "sport": "Fútbol", "food": "Byrek", "history": "Independencia del Imperio Otomano en 1912"},
+  {"id": "dz", "name": "Argelia", "capital": "Argel", "pop": "48,028,000", "gdp": "$285B", "lang": "Árabe/Bereber", "religion": "Islam", "attraction": "Desierto del Sahara", "fact": "País más grande de África por superficie.", "continent": "África", "sport": "Fútbol", "food": "Couscous", "history": "Independencia de Francia en 1962"},
+  {"id": "ad", "name": "Andorra", "capital": "Andorra la Vella", "pop": "80,000", "gdp": "$3.7B", "lang": "Catalán", "religion": "Cristianismo", "attraction": "Grandvalira", "fact": "El único país donde el catalán es el único idioma oficial.", "continent": "Europa", "sport": "Esquí", "food": "Escudella", "history": "Formación del Coprincipado en 1278"},
+  {"id": "ao", "name": "Angola", "capital": "Luanda", "pop": "40,215,000", "gdp": "$110B", "lang": "Portugués", "religion": "Cristianismo", "attraction": "Cataratas de Kalandula", "fact": "Hogar del raro antílope Sable Gigante.", "continent": "África", "sport": "Fútbol", "food": "Muamba de Galinha", "history": "Independencia de Portugal en 1975"},
+  {"id": "ag", "name": "Antigua y Barbuda", "capital": "Saint John's", "pop": "94,000", "gdp": "$1.9B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Astillero de Nelson", "fact": "Tiene 365 playas, una para cada día del año.", "continent": "Norteamérica", "sport": "Cricket", "food": "Fungi y Pepperpot", "history": "Independencia del Reino Unido en 1981"},
+  {"id": "ar", "name": "Argentina", "capital": "Buenos Aires", "pop": "46,003,000", "gdp": "$668B", "lang": "Español", "religion": "Cristianismo", "attraction": "Cataratas del Iguazú", "fact": "Inventó la radio en 1920.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Asado", "history": "Independencia de España en 1816"},
+  {"id": "am", "name": "Armenia", "capital": "Ereván", "pop": "2,778,000", "gdp": "$25.4B", "lang": "Armenio", "religion": "Cristianismo", "attraction": "Monte Ararat", "fact": "Primer país en adoptar el cristianismo como religión de estado.", "continent": "Asia", "sport": "Fútbol/Ajedrez", "food": "Khorovats", "history": "Adopción del Cristianismo en 301 d.C."},
+  {"id": "au", "name": "Australia", "capital": "Canberra", "pop": "27,227,000", "gdp": "$1.95T", "lang": "Inglés", "religion": "Laico/Cristiano", "attraction": "Gran Barrera de Coral", "fact": "Tiene menos población que el área metropolitana de Tokio.", "continent": "Oceanía", "sport": "Cricket/AFL", "food": "Meat Pie", "history": "Federación de Australia en 1901"},
+  {"id": "at", "name": "Austria", "capital": "Viena", "pop": "8,959,000", "gdp": "$604B", "lang": "Alemán", "religion": "Cristianismo", "attraction": "Palacio de Schönbrunn", "fact": "La máquina de coser fue inventada aquí.", "continent": "Europa", "sport": "Esquí", "food": "Wiener Schnitzel", "history": "Tratado de Estado de 1955"},
+  {"id": "az", "name": "Azerbaiyán", "capital": "Bakú", "pop": "10,455,000", "gdp": "$82.6B", "lang": "Azerbaiyano", "religion": "Islam", "attraction": "Torre de la Doncella", "fact": "Conocida como la 'Tierra del Fuego' debido a sus llamaradas de gas natural.", "continent": "Asia", "sport": "Fútbol/Lucha", "food": "Plov", "history": "Primera República Democrática en el Este en 1918"},
+  {"id": "bs", "name": "Bahamas", "capital": "Nassau", "pop": "412,000", "gdp": "$14.3B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Cerdos nadadores de Exuma", "fact": "El agua es tan clara que se puede ver hasta 60 metros de profundidad.", "continent": "Norteamérica", "sport": "Velocidad/Básquet", "food": "Ensalada de Caracol", "history": "Independencia del Reino Unido en 1973"},
+  {"id": "bh", "name": "Bahréin", "capital": "Manama", "pop": "1,485,000", "gdp": "$46.8B", "lang": "Árabe", "religion": "Islam", "attraction": "Qal'at al-Bahrain", "fact": "Primer lugar donde se descubrió petróleo en el lado árabe del Golfo.", "continent": "Asia", "sport": "Fútbol", "food": "Machboos", "history": "Independencia del Reino Unido en 1971"},
+  {"id": "bd", "name": "Bangladés", "capital": "Daca", "pop": "177,818,000", "gdp": "$519B", "lang": "Bengalí", "religion": "Islam", "attraction": "Manglares de Sundarbans", "fact": "Es el único país cuyo nombre termina en 'h' en inglés.", "continent": "Asia", "sport": "Cricket", "food": "Curry de Pescado Hilsa", "history": "Independencia de Pakistán en 1971"},
+  {"id": "bb", "name": "Barbados", "capital": "Bridgetown", "pop": "282,000", "gdp": "$6.4B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Cueva de Harrison", "fact": "Lugar de nacimiento del ron.", "continent": "Norteamérica", "sport": "Cricket", "food": "Cou-cou y Pescado Volador", "history": "Independencia del Reino Unido en 1966"},
+  {"id": "by", "name": "Bielorrusia", "capital": "Minsk", "pop": "9,498,000", "gdp": "$75.3B", "lang": "Bielorruso/Ruso", "religion": "Cristianismo", "attraction": "Castillo de Mir", "fact": "Llamada los 'Pulmones de Europa' por sus bosques.", "continent": "Europa", "sport": "Hockey Hielo", "food": "Draniki", "history": "Independencia de la URSS en 1991"},
+  {"id": "be", "name": "Bélgica", "capital": "Bruselas", "pop": "11,775,000", "gdp": "$761B", "lang": "Neerlandés/Francés/Alemán", "religion": "Cristianismo", "attraction": "Grand Place", "fact": "Vende más chocolate en su aeropuerto que cualquier otro lugar del mundo.", "continent": "Europa", "sport": "Fútbol", "food": "Mejillones con Patatas", "history": "Revolución Belga en 1830"},
+  {"id": "bz", "name": "Belice", "capital": "Belmopán", "pop": "411,000", "gdp": "$3.2B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Gran Agujero Azul", "fact": "Tiene la segunda barrera de coral más grande del mundo.", "continent": "Norteamérica", "sport": "Fútbol", "food": "Arroz con Frijoles", "history": "Independencia del Reino Unido en 1981"},
+  {"id": "bj", "name": "Benín", "capital": "Porto Novo", "pop": "15,170,000", "gdp": "$21.4B", "lang": "Francés", "religion": "Islam/Cristianismo", "attraction": "Parque Pendjari", "fact": "Hogar original de la religión Vudú.", "continent": "África", "sport": "Fútbol", "food": "Kuli-Kuli", "history": "Independencia de Francia en 1960"},
+  {"id": "bt", "name": "Bután", "capital": "Timbu", "pop": "787,000", "gdp": "$2.9B", "lang": "Dzongkha", "religion": "Budismo", "attraction": "Nido del Tigre", "fact": "Mide el progreso por la 'Felicidad Nacional Bruta'.", "continent": "Asia", "sport": "Tiro con arco", "food": "Ema Datshi", "history": "Establecimiento de la Monarquía en 1907"},
+  {"id": "bo", "name": "Bolivia", "capital": "Sucre", "pop": "12,749,000", "gdp": "$49.1B", "lang": "Español/Quechua/Aymara", "religion": "Cristianismo", "attraction": "Salar de Uyuni", "fact": "El salar más grande del mundo está aquí.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Salteñas", "history": "Independencia de España en 1825"},
+  {"id": "ba", "name": "Bosnia y Herzegovina", "capital": "Sarajevo", "pop": "3,211,000", "gdp": "$29.8B", "lang": "Bosnio/Croata/Serbio", "religion": "Islam", "attraction": "Puente de Mostar", "fact": "Sarajevo fue sede de los Juegos Olímpicos de Invierno de 1984.", "continent": "Europa", "sport": "Fútbol", "food": "Ćevapi", "history": "Independencia de Yugoslavia en 1992"},
+  {"id": "bw", "name": "Botsuana", "capital": "Gaborone", "pop": "2,675,000", "gdp": "$21.6B", "lang": "Inglés/Setsuana", "religion": "Cristianismo", "attraction": "Delta del Okavango", "fact": "Hogar de la población más grande de elefantes del mundo.", "continent": "África", "sport": "Fútbol", "food": "Seswaa", "history": "Independencia del Reino Unido en 1966"},
+  {"id": "br", "name": "Brasil", "capital": "Brasilia", "pop": "213,563,000", "gdp": "$2.29T", "lang": "Portugués", "religion": "Cristianismo", "attraction": "Cristo Redentor", "fact": "Cubre el 50% de Sudamérica.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Feijoada", "history": "Independencia de Portugal en 1822"},
+  {"id": "bn", "name": "Brunéi", "capital": "Bandar Seri Begawan", "pop": "452,000", "gdp": "$15.9B", "lang": "Malayo", "religion": "Islam", "attraction": "Mezquita Omar Ali Saifuddien", "fact": "Los ciudadanos no pagan impuestos sobre la renta.", "continent": "Asia", "sport": "Fútbol", "food": "Ambuyat", "history": "Independencia del Reino Unido en 1984"},
+  {"id": "bg", "name": "Bulgaria", "capital": "Sofía", "pop": "6,688,000", "gdp": "$112B", "lang": "Búlgaro", "religion": "Cristianismo", "attraction": "Monasterio de Rila", "fact": "El único país de Europa que no ha cambiado de nombre desde 681 d.C.", "continent": "Europa", "sport": "Fútbol", "food": "Ensalada Shopska", "history": "Fundación del Primer Imperio en 681 d.C."},
+  {"id": "bf", "name": "Burkina Faso", "capital": "Uagadugú", "pop": "24,602,000", "gdp": "$22.4B", "lang": "Francés", "religion": "Islam", "attraction": "Gran Mezquita de Bobo-Dioulasso", "fact": "Conocida como la 'Tierra de los Hombres Íntegros'.", "continent": "África", "sport": "Fútbol", "food": "Riz Gras", "history": "Independencia de Francia en 1960"},
+  {"id": "bi", "name": "Burundi", "capital": "Guitega", "pop": "14,729,000", "gdp": "$4.2B", "lang": "Kirundi/Francés", "religion": "Cristianismo", "attraction": "Parque Nacional Kibira", "fact": "Gustave, un cocodrilo gigante devorador de hombres, vive aquí.", "continent": "África", "sport": "Fútbol", "food": "Boko Boko Harees", "history": "Independencia de Bélgica en 1962"},
+  {"id": "cv", "name": "Cabo Verde", "capital": "Praia", "pop": "599,000", "gdp": "$2.6B", "lang": "Portugués", "religion": "Cristianismo", "attraction": "Pico do Fogo", "fact": "Hay más caboverdianos viviendo fuera que en el país.", "continent": "África", "sport": "Fútbol", "food": "Cachupa", "history": "Independencia de Portugal en 1975"},
+  {"id": "kh", "name": "Camboya", "capital": "Phnom Penh", "pop": "18,051,000", "gdp": "$34.1B", "lang": "Jemer", "religion": "Budismo", "attraction": "Angkor Wat", "fact": "Única bandera nacional con un edificio.", "continent": "Asia", "sport": "Fútbol/Kun Khmer", "food": "Amok Trek", "history": "Independencia de Francia en 1953"},
+  {"id": "cm", "name": "Camerún", "capital": "Yaundé", "pop": "30,641,000", "gdp": "$51.2B", "lang": "Francés/Inglés", "religion": "Cristianismo", "attraction": "Monte Camerún", "fact": "Conocido como 'África en miniatura' por su diversidad.", "continent": "África", "sport": "Fútbol", "food": "Ndolé", "history": "Independencia de Francia/Reino Unido en 1960"},
+  {"id": "ca", "name": "Canadá", "capital": "Ottawa", "pop": "40,468,000", "gdp": "$2.42T", "lang": "Inglés/Francés", "religion": "Cristianismo", "attraction": "Cataratas del Niágara", "fact": "Tiene más lagos que el resto del mundo combinado.", "continent": "Norteamérica", "sport": "Hockey Hielo", "food": "Poutine", "history": "Confederación en 1867"},
+  {"id": "cf", "name": "República Centroafricana", "capital": "Bangui", "pop": "5,742,000", "gdp": "$2.8B", "lang": "Sango/Francés", "religion": "Cristianismo", "attraction": "Reserva Dzanga-Sangha", "fact": "Uno de los mejores lugares para observar estrellas por la baja contaminación lumínica.", "continent": "África", "sport": "Básquet", "food": "Pan de Yuca", "history": "Independencia de Francia en 1960"},
+  {"id": "td", "name": "Chad", "capital": "Yamena", "pop": "21,560,000", "gdp": "$13.9B", "lang": "Francés/Árabe", "religion": "Islam", "attraction": "Parque Nacional Zakouma", "fact": "El Lago Chad se ha reducido un 95% desde 1960.", "continent": "África", "sport": "Fútbol", "food": "Daraba", "history": "Independencia de Francia en 1960"},
+  {"id": "cl", "name": "Chile", "capital": "Santiago", "pop": "19,946,000", "gdp": "$363B", "lang": "Español", "religion": "Cristianismo", "attraction": "Torres del Paine", "fact": "El desierto más árido del mundo, Atacama, está aquí.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Empanada", "history": "Primera Junta de Gobierno en 1810"},
+  {"id": "cn", "name": "China", "capital": "Pekín", "pop": "1,412,914,000", "gdp": "$20.65T", "lang": "Mandarín", "religion": "Ateísmo", "attraction": "Gran Muralla", "fact": "Sigue una sola zona horaria a pesar de su tamaño.", "continent": "Asia", "sport": "Tenis de Mesa/Básquet", "food": "Pato Pekín", "history": "Proclamación de la RPC en 1949"},
+  {"id": "co", "name": "Colombia", "capital": "Bogotá", "pop": "53,936,000", "gdp": "$462B", "lang": "Español", "religion": "Cristianismo", "attraction": "Caño Cristales", "fact": "Produce el 70-90% de las esmeraldas del mundo.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Bandeja Paisa", "history": "Declaración de Independencia en 1810"},
+  {"id": "km", "name": "Comoras", "capital": "Moroni", "pop": "852,000", "gdp": "$1.4B", "lang": "Comorense/Árabe/Francés", "religion": "Islam", "attraction": "Monte Karthala", "fact": "Conocidas como las 'Islas del Perfume' por su producción de ylang-ylang.", "continent": "África", "sport": "Fútbol", "food": "Langosta a la Vainilla", "history": "Independencia de Francia en 1975"},
+  {"id": "cg", "name": "Congo (Brazzaville)", "capital": "Brazzaville", "pop": "6,107,000", "gdp": "$16.1B", "lang": "Francés", "religion": "Cristianismo", "attraction": "Parque Odzala-Kokoua", "fact": "El río Congo es el más profundo del mundo.", "continent": "África", "sport": "Fútbol", "food": "Pollo Moambe", "history": "Independencia de Francia en 1960"},
+  {"id": "cd", "name": "Congo (Kinshasa)", "capital": "Kinshasa", "pop": "116,452,000", "gdp": "$78.4B", "lang": "Francés", "religion": "Cristianismo", "attraction": "Parque Nacional Virunga", "fact": "Segundo país más grande de África.", "continent": "África", "sport": "Fútbol", "food": "Moambe", "history": "Independencia de Bélgica en 1960"},
+  {"id": "cr", "name": "Costa Rica", "capital": "San José", "pop": "5,212,000", "gdp": "$92.1B", "lang": "Español", "religion": "Cristianismo", "attraction": "Volcán Arenal", "fact": "No tiene ejército desde 1948.", "continent": "Norteamérica", "sport": "Fútbol", "food": "Gallo Pinto", "history": "Independencia de España en 1821"},
+  {"id": "hr", "name": "Croacia", "capital": "Zagreb", "pop": "4,009,000", "gdp": "$85.1B", "lang": "Croata", "religion": "Cristianismo", "attraction": "Lagos de Plitvice", "fact": "La corbata se originó aquí.", "continent": "Europa", "sport": "Fútbol", "food": "Peka", "history": "Independencia de Yugoslavia en 1991"},
+  {"id": "cu", "name": "Cuba", "capital": "La Habana", "pop": "10,893,000", "gdp": "$202B", "lang": "Español", "religion": "Cristianismo", "attraction": "La Habana Vieja", "fact": "Coches clásicos de los años 50 todavía se usan como taxis.", "continent": "Norteamérica", "sport": "Béisbol", "food": "Ropa Vieja", "history": "Revolución Cubana en 1959"},
+  {"id": "cy", "name": "Chipre", "capital": "Nicosia", "pop": "1,260,000", "gdp": "$34.1B", "lang": "Griego/Turco", "religion": "Cristianismo", "attraction": "Roca de Afrodita", "fact": "El vino más antiguo del mundo, Commandaria, se hace aquí.", "continent": "Europa", "sport": "Fútbol", "food": "Halloumi", "history": "Independencia del Reino Unido en 1960"},
+  {"id": "cz", "name": "Chequia", "capital": "Praga", "pop": "10,528,000", "gdp": "$417B", "lang": "Checo", "religion": "Ateísmo", "attraction": "Puente Carlos", "fact": "País con el mayor consumo de cerveza por persona.", "continent": "Europa", "sport": "Hockey/Fútbol", "food": "Svíčková", "history": "Disolución de Checoslovaquia en 1993"},
+  {"id": "dk", "name": "Dinamarca", "capital": "Copenhague", "pop": "5,911,000", "gdp": "$500B", "lang": "Danés", "religion": "Cristianismo", "attraction": "Estatua de la Sirenita", "fact": "La bandera danesa es la más antigua en uso continuo.", "continent": "Europa", "sport": "Fútbol/Balonmano", "food": "Smørrebrød", "history": "Primera Constitución en 1849"},
+  {"id": "dj", "name": "Yibuti", "capital": "Yibuti", "pop": "1,136,000", "gdp": "$4.3B", "lang": "Francés/Árabe", "religion": "Islam", "attraction": "Lago Assal", "fact": "Punto más bajo de África y segundo del mundo.", "continent": "África", "sport": "Fútbol", "food": "Skoudehkaris", "history": "Independencia de Francia en 1977"},
+  {"id": "dm", "name": "Dominica", "capital": "Roseau", "pop": "73,000", "gdp": "$0.7B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Lago Hirviente", "fact": "Conocida como la 'Isla de la Naturaleza del Caribe'.", "continent": "Norteamérica", "sport": "Cricket", "food": "Rana de Montaña", "history": "Independencia del Reino Unido en 1978"},
+  {"id": "do", "name": "República Dominicana", "capital": "Santo Domingo", "pop": "11,610,000", "gdp": "$138B", "lang": "Español", "religion": "Cristianismo", "attraction": "Punta Cana", "fact": "Ciudad fundada por europeos más antigua de América.", "continent": "Norteamérica", "sport": "Béisbol", "food": "La Bandera", "history": "Independencia de Haití en 1844"},
+  {"id": "ec", "name": "Ecuador", "capital": "Quito", "pop": "18,445,000", "gdp": "$135B", "lang": "Español", "religion": "Cristianismo", "attraction": "Islas Galápagos", "fact": "Primer país en otorgar derechos constitucionales a la Naturaleza.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Cuy", "history": "Batalla de Pichincha en 1822"},
+  {"id": "eg", "name": "Egipto", "capital": "El Cairo", "pop": "120,101,000", "gdp": "$399B", "lang": "Árabe", "religion": "Islam", "attraction": "Pirámides de Giza", "fact": "Hogar de una de las civilizaciones más antiguas.", "continent": "África", "sport": "Fútbol", "food": "Koshary", "history": "Revolución de 1952"},
+  {"id": "sv", "name": "El Salvador", "capital": "San Salvador", "pop": "6,365,000", "gdp": "$36.5B", "lang": "Español", "religion": "Cristianismo", "attraction": "Volcán de Santa Ana", "fact": "Primer país en adoptar Bitcoin como moneda de curso legal.", "continent": "Norteamérica", "sport": "Fútbol", "food": "Pupusas", "history": "Independencia de España en 1821"},
+  {"id": "gq", "name": "Guinea Ecuatorial", "capital": "Malabo", "pop": "1,715,000", "gdp": "$12.1B", "lang": "Español/Francés", "religion": "Cristianismo", "attraction": "Pico Basile", "fact": "Único país africano con el español como idioma oficial.", "continent": "África", "sport": "Fútbol", "food": "Succotash", "history": "Independencia de España en 1968"},
+  {"id": "er", "name": "Eritrea", "capital": "Asmara", "pop": "3,749,000", "gdp": "$2.1B", "lang": "Tigriña/Árabe", "religion": "Cristianismo/Islam", "attraction": "Asmara Art Deco", "fact": "No tiene idioma oficial de jure.", "continent": "África", "sport": "Ciclismo", "food": "Zigni", "history": "Independencia de Etiopía en 1993"},
+  {"id": "ee", "name": "Estonia", "capital": "Tallin", "pop": "1,323,000", "gdp": "$44.3B", "lang": "Estonio", "religion": "Laico", "attraction": "Casco Viejo de Tallin", "fact": "Primer país en usar voto por internet en 2005.", "continent": "Europa", "sport": "Básquet", "food": "Verivorst", "history": "Declaración de Independencia en 1918"},
+  {"id": "sz", "name": "Esuatini", "capital": "Mbabane", "pop": "1,211,000", "gdp": "$5.1B", "lang": "Swati/Inglés", "religion": "Cristianismo", "attraction": "Santuario Mlilwane", "fact": "Última monarquía absoluta de África.", "continent": "África", "sport": "Fútbol", "food": "Umncwepo", "history": "Independencia del Reino Unido en 1968"},
+  {"id": "et", "name": "Etiopía", "capital": "Adís Abeba", "pop": "138,902,000", "gdp": "$126B", "lang": "Amhárico", "religion": "Cristianismo/Islam", "attraction": "Iglesias de Lalibela", "fact": "Usa un calendario único que tiene 7 años de retraso.", "continent": "África", "sport": "Atletismo", "food": "Injera con Doro Wat", "history": "Batalla de Adwa en 1896"},
+  {"id": "fj", "name": "Fiyi", "capital": "Suva", "pop": "936,000", "gdp": "$5.8B", "lang": "Fiyiano/Inglés/Hindi", "religion": "Cristianismo", "attraction": "Islas Mamanuca", "fact": "Único país excepto India con el hindi como idioma oficial.", "continent": "Oceanía", "sport": "Rugby Sevens", "food": "Kokoda", "history": "Independencia del Reino Unido en 1970"},
+  {"id": "fi", "name": "Finlandia", "capital": "Helsinki", "pop": "5,545,000", "gdp": "$335B", "lang": "Finlandés/Sueco", "religion": "Cristianismo", "attraction": "Pueblo de Santa Claus", "fact": "Clasificado como el país más feliz del mundo frecuentemente.", "continent": "Europa", "sport": "Hockey Hielo", "food": "Karjalanpiirakka", "history": "Independencia de Rusia en 1917"},
+  {"id": "fr", "name": "Francia", "capital": "París", "pop": "66,746,000", "gdp": "$3.56T", "lang": "Francés", "religion": "Cristianismo", "attraction": "Torre Eiffel", "fact": "País más visitado del mundo.", "continent": "Europa", "sport": "Fútbol/Rugby", "food": "Pot-au-Feu", "history": "Revolución Francesa en 1789"},
+  {"id": "ga", "name": "Gabón", "capital": "Libreville", "pop": "2,437,000", "gdp": "$21.3B", "lang": "Francés", "religion": "Cristianismo", "attraction": "Parque Loango", "fact": "El 80% del país está cubierto por selva.", "continent": "África", "sport": "Fútbol", "food": "Pollo Nyembwe", "history": "Independencia de Francia en 1960"},
+  {"id": "gm", "name": "Gambia", "capital": "Banjul", "pop": "2,773,000", "gdp": "$2.5B", "lang": "Inglés", "religion": "Islam", "attraction": "Estanque de Kachikally", "fact": "País más pequeño de África continental.", "continent": "África", "sport": "Fútbol", "food": "Domoda", "history": "Independencia del Reino Unido en 1965"},
+  {"id": "ge", "name": "Georgia", "capital": "Tiflis", "pop": "3,728,000", "gdp": "$33.4B", "lang": "Georgiano", "religion": "Cristianismo", "attraction": "Iglesia de Gergeti", "fact": "Cuna del vino, con 8,000 años de historia.", "continent": "Asia", "sport": "Rugby", "food": "Khachapuri", "history": "Edad de Oro en S. XI-XII"},
+  {"id": "de", "name": "Alemania", "capital": "Berlín", "pop": "83,644,000", "gdp": "$5.33T", "lang": "Alemán", "religion": "Cristianismo/Ninguna", "attraction": "Castillo Neuschwanstein", "fact": "Primer país en adoptar el horario de verano.", "continent": "Europa", "sport": "Fútbol", "food": "Sauerbraten", "history": "Reunificación Alemana en 1990"},
+  {"id": "gh", "name": "Ghana", "capital": "Acra", "pop": "35,698,000", "gdp": "$113B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Castillo de Cape Coast", "fact": "Primer país del África subsahariana en independizarse.", "continent": "África", "sport": "Fútbol", "food": "Arroz Jollof", "history": "Independencia del Reino Unido en 1957"},
+  {"id": "gr", "name": "Grecia", "capital": "Atenas", "pop": "10,341,000", "gdp": "$305B", "lang": "Griego", "religion": "Cristianismo", "attraction": "Partenón", "fact": "Tiene más de 2,000 islas.", "continent": "Europa", "sport": "Fútbol/Básquet", "food": "Moussaka", "history": "Guerra de Independencia en 1821"},
+  {"id": "gd", "name": "Granada", "capital": "St. George's", "pop": "126,000", "gdp": "$1.4B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Playa Grand Anse", "fact": "Conocida como la 'Isla de las Especias' por la nuez moscada.", "continent": "Norteamérica", "sport": "Cricket", "food": "Oil Down", "history": "Independencia del Reino Unido en 1974"},
+  {"id": "gt", "name": "Guatemala", "capital": "Ciudad de Guatemala", "pop": "18,968,000", "gdp": "$129B", "lang": "Español", "religion": "Cristianismo", "attraction": "Tikal", "fact": "Aquí se inventó la primera tableta de chocolate.", "continent": "Norteamérica", "sport": "Fútbol", "food": "Pepián", "history": "Independencia de España en 1821"},
+  {"id": "gn", "name": "Guinea", "capital": "Conakry", "pop": "15,442,000", "gdp": "$25.1B", "lang": "Francés", "religion": "Islam", "attraction": "Monte Nimba", "fact": "Posee un tercio de las reservas mundiales de bauxita.", "continent": "África", "sport": "Fútbol", "food": "Pollo Yassa", "history": "Independencia de Francia en 1958"},
+  {"id": "gw", "name": "Guinea-Bisáu", "capital": "Bisáu", "pop": "2,151,000", "gdp": "$2.1B", "lang": "Portugués", "religion": "Islam", "attraction": "Islas Bijagós", "fact": "Famoso por su sociedad matriarcal en las islas Bijagós.", "continent": "África", "sport": "Fútbol", "food": "Caldo de Mancarra", "history": "Declaración de Independencia en 1973"},
+  {"id": "gy", "name": "Guyana", "capital": "Georgetown", "pop": "814,000", "gdp": "$25.4B", "lang": "Inglés", "religion": "Cristianismo/Hinduismo", "attraction": "Cataratas Kaieteur", "fact": "La economía de más rápido crecimiento del mundo por el petróleo.", "continent": "Sudamérica", "sport": "Cricket", "food": "Pepperpot", "history": "Independencia del Reino Unido en 1966"},
+  {"id": "ht", "name": "Haití", "capital": "Puerto Príncipe", "pop": "12,038,000", "gdp": "$21.1B", "lang": "Criollo Haitiano/Francés", "religion": "Cristianismo", "attraction": "Citadelle Laferrière", "fact": "Primera república liderada por negros en el mundo.", "continent": "Norteamérica", "sport": "Fútbol", "food": "Sopa Joumou", "history": "Revolución Haitiana en 1804"},
+  {"id": "hn", "name": "Honduras", "capital": "Tegucigalpa", "pop": "11,185,000", "gdp": "$36.8B", "lang": "Español", "religion": "Cristianismo", "attraction": "Ruinas de Copán", "fact": "Famoso por el fenómeno de la 'Lluvia de Peces'.", "continent": "Norteamérica", "sport": "Fútbol", "food": "Baleadas", "history": "Independencia de España en 1821"},
+  {"id": "hu", "name": "Hungría", "capital": "Budapest", "pop": "10,156,000", "gdp": "$270B", "lang": "Húngaro", "religion": "Cristianismo", "attraction": "Edificio del Parlamento", "fact": "El cubo de Rubik fue inventado aquí.", "continent": "Europa", "sport": "Fútbol/Waterpolo", "food": "Goulash", "history": "Revolución de 1956"},
+  {"id": "is", "name": "Islandia", "capital": "Reikiavik", "pop": "375,000", "gdp": "$33.2B", "lang": "Islandés", "religion": "Cristianismo", "attraction": "Laguna Azul", "fact": "Único país del mundo sin mosquitos.", "continent": "Europa", "sport": "Fútbol/Balonmano", "food": "Hákarl", "history": "Independencia de Dinamarca en 1944"},
+  {"id": "in", "name": "India", "capital": "Nueva Delhi", "pop": "1,476,626,000", "gdp": "$4.51T", "lang": "Hindi/Inglés", "religion": "Hinduismo", "attraction": "Taj Mahal", "fact": "El sistema numérico de base 10 fue inventado aquí.", "continent": "Asia", "sport": "Cricket", "food": "Biryani", "history": "Independencia del Reino Unido en 1947"},
+  {"id": "id", "name": "Indonesia", "capital": "Yakarta", "pop": "287,887,000", "gdp": "$1.55T", "lang": "Indonesio", "religion": "Islam", "attraction": "Borobudur", "fact": "El estado archipelágico más grande del mundo.", "continent": "Asia", "sport": "Bádminton", "food": "Nasi Goreng", "history": "Proclamación de Independencia en 1945"},
+  {"id": "ir", "name": "Irán", "capital": "Teherán", "pop": "93,168,000", "gdp": "$376B", "lang": "Persa", "religion": "Islam", "attraction": "Persépolis", "fact": "Hogar de 27 ciudades capitales diferentes a lo largo de su historia.", "continent": "Asia", "sport": "Fútbol/Lucha", "food": "Chelow Kabab", "history": "Revolución Islámica en 1979"},
+  {"id": "iq", "name": "Irak", "capital": "Bagdad", "pop": "48,007,000", "gdp": "$274B", "lang": "Árabe/Kurdo", "religion": "Islam", "attraction": "Zigurat de Ur", "fact": "Considerado la 'Cuna de la Civilización'.", "continent": "Asia", "sport": "Fútbol", "food": "Masgouf", "history": "Independencia del Reino Unido en 1932"},
+  {"id": "ie", "name": "Irlanda", "capital": "Dublín", "pop": "5,057,000", "gdp": "$750B", "lang": "Inglés/Irlandés", "religion": "Cristianismo", "attraction": "Acantilados de Moher", "fact": "El arquitecto de la Casa Blanca era el irlandés James Hoban.", "continent": "Europa", "sport": "Fútbol Gaélico", "food": "Estofado Irlandés", "history": "Estado Libre en 1922"},
+  {"id": "il", "name": "Israel", "capital": "Jerusalén", "pop": "9,175,000", "gdp": "$666B", "lang": "Hebreo", "religion": "Judaísmo", "attraction": "Muro de las Lamentaciones", "fact": "Tiene la mayor cantidad de museos per cápita del mundo.", "continent": "Asia", "sport": "Fútbol/Básquet", "food": "Falafel/Hummus", "history": "Declaración de Independencia en 1948"},
+  {"id": "it", "name": "Italia", "capital": "Roma", "pop": "58,926,000", "gdp": "$2.70T", "lang": "Italiano", "religion": "Cristianismo", "attraction": "Coliseo", "fact": "Tiene más sitios Patrimonio de la Humanidad que cualquier otro país.", "continent": "Europa", "sport": "Fútbol", "food": "Pasta/Pizza", "history": "Unificación de Italia en 1861"},
+  {"id": "jm", "name": "Jamaica", "capital": "Kingston", "pop": "2,826,000", "gdp": "$18.2B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Cataratas del Río Dunn", "fact": "El corredor más rápido del mundo, Usain Bolt, es de aquí.", "continent": "Norteamérica", "sport": "Atletismo/Cricket", "food": "Ackee y Pescado Salado", "history": "Independencia del Reino Unido en 1962"},
+  {"id": "jp", "name": "Japón", "capital": "Tokio", "pop": "122,428,000", "gdp": "$4.46T", "lang": "Japonés", "religion": "Sintoísmo/Budismo", "attraction": "Monte Fuji", "fact": "Tiene más de 5 millones de máquinas expendedoras.", "continent": "Asia", "sport": "Béisbol/Sumo", "food": "Sushi", "history": "Restauración Meiji en 1868"},
+  {"id": "jo", "name": "Jordania", "capital": "Amán", "pop": "11,590,000", "gdp": "$56.2B", "lang": "Árabe", "religion": "Islam", "attraction": "Petra", "fact": "El Mar Muerto es el punto más bajo de la superficie terrestre.", "continent": "Asia", "sport": "Fútbol", "food": "Mansaf", "history": "Independencia del Reino Unido en 1946"},
+  {"id": "kz", "name": "Kazajistán", "capital": "Astaná", "pop": "21,084,000", "gdp": "$320B", "lang": "Kazajo/Ruso", "religion": "Islam", "attraction": "Cañón Charyn", "fact": "El país sin litoral más grande del mundo.", "continent": "Asia", "sport": "Boxeo", "food": "Beshbarmak", "history": "Independencia de la URSS en 1991"},
+  {"id": "ke", "name": "Kenia", "capital": "Nairobi", "pop": "58,636,000", "gdp": "$141B", "lang": "Suajili/Inglés", "religion": "Cristianismo", "attraction": "Masái Mara", "fact": "Produce los mejores corredores de larga distancia del mundo.", "continent": "África", "sport": "Atletismo", "food": "Ugali", "history": "Independencia del Reino Unido en 1963"},
+  {"id": "ki", "name": "Kiribati", "capital": "Tarawa Sur", "pop": "134,000", "gdp": "$0.3B", "lang": "Kiribatiano/Inglés", "religion": "Cristianismo", "attraction": "Isla de Navidad", "fact": "Único país en los cuatro hemisferios.", "continent": "Oceanía", "sport": "Fútbol", "food": "Palusami", "history": "Independencia del Reino Unido en 1979"},
+  {"id": "kw", "name": "Kuwait", "capital": "Ciudad de Kuwait", "pop": "4,310,000", "gdp": "$163B", "lang": "Árabe", "religion": "Islam", "attraction": "Torres de Kuwait", "fact": "Tiene la moneda de mayor valor del mundo (Dinar Kuwaití).", "continent": "Asia", "sport": "Fútbol", "food": "Machboos", "history": "Independencia del Reino Unido en 1961"},
+  {"id": "kg", "name": "Kirguistán", "capital": "Biskek", "pop": "6,735,000", "gdp": "$14.5B", "lang": "Kirguís/Ruso", "religion": "Islam", "attraction": "Lago Issyk-Kul", "fact": "Tiene el poema épico más largo del mundo, 'Manas'.", "continent": "Asia", "sport": "Lucha", "food": "Beshbarmak", "history": "Independencia de la URSS en 1991"},
+  {"id": "la", "name": "Laos", "capital": "Vientián", "pop": "7,634,000", "gdp": "$17.1B", "lang": "Lao", "religion": "Budismo", "attraction": "Luang Prabang", "fact": "País más bombardeado per cápita de la historia.", "continent": "Asia", "sport": "Fútbol/Muay Lao", "food": "Larv", "history": "Independencia de Francia en 1953"},
+  {"id": "lv", "name": "Letonia", "capital": "Riga", "pop": "1,830,000", "gdp": "$44.2B", "lang": "Letón", "religion": "Cristianismo", "attraction": "Monumento a la Libertad", "fact": "Aquí se inventaron los vaqueros (Jacob Davis nació aquí).", "continent": "Europa", "sport": "Hockey/Básquet", "food": "Gisantes grises con tocino", "history": "Independencia de Rusia en 1918"},
+  {"id": "lb", "name": "Líbano", "capital": "Beirut", "pop": "5,354,000", "gdp": "$21.1B", "lang": "Árabe", "religion": "Islam/Cristianismo", "attraction": "Gruta de Jeita", "fact": "Conocido como la 'Suiza de Oriente'.", "continent": "Asia", "sport": "Básquet", "food": "Kibbeh", "history": "Independencia de Francia en 1943"},
+  {"id": "ls", "name": "Lesoto", "capital": "Maseru", "pop": "2,330,000", "gdp": "$2.8B", "lang": "Sesoto/Inglés", "religion": "Cristianismo", "attraction": "Cataratas Maletsunyane", "fact": "El 'Reino en el Cielo': todo el país está por encima de los 1000m.", "continent": "África", "sport": "Fútbol", "food": "Papa", "history": "Independencia del Reino Unido en 1966"},
+  {"id": "lr", "name": "Liberia", "capital": "Monrovia", "pop": "5,418,000", "gdp": "$4.6B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Parque Sapo", "fact": "República moderna más antigua de África.", "continent": "África", "sport": "Fútbol", "food": "Dumboy", "history": "Independencia en 1847"},
+  {"id": "ly", "name": "Libia", "capital": "Trípoli", "pop": "6,888,000", "gdp": "$49.5B", "lang": "Árabe", "religion": "Islam", "attraction": "Leptis Magna", "fact": "Solía tener la tasa de alfabetización más alta de África.", "continent": "África", "sport": "Fútbol", "food": "Bazeen", "history": "Independencia en 1951"},
+  {"id": "li", "name": "Liechtenstein", "capital": "Vaduz", "pop": "40,000", "gdp": "$7.8B", "lang": "Alemán", "religion": "Cristianismo", "attraction": "Castillo de Vaduz", "fact": "Es un país doblemente sin litoral.", "continent": "Europa", "sport": "Esquí", "food": "Käsknöpfle", "history": "Estado Soberano en 1806"},
+  {"id": "lt", "name": "Lituania", "capital": "Vilna", "pop": "2,718,000", "gdp": "$85.6B", "lang": "Lituano", "religion": "Cristianismo", "attraction": "Castillo de Trakai", "fact": "Único país con su propio aroma oficial.", "continent": "Europa", "sport": "Básquet", "food": "Cepelinai", "history": "Restauración de Independencia en 1990"},
+  {"id": "lu", "name": "Luxemburgo", "capital": "Luxemburgo", "pop": "655,000", "gdp": "$94.2B", "lang": "Luxemburgués/Francés/Alemán", "religion": "Cristianismo", "attraction": "Bock Casemates", "fact": "El transporte público es gratuito para todos.", "continent": "Europa", "sport": "Fútbol", "food": "Judd mat Gaardebounen", "history": "Tratado de Londres en 1839"},
+  {"id": "mg", "name": "Madagascar", "capital": "Antananarivo", "pop": "33,522,000", "gdp": "$18.6B", "lang": "Malgache/Francés", "religion": "Cristianismo/Folk", "attraction": "Avenida de los Baobabs", "fact": "El 90% de su vida silvestre no existe en ningún otro lugar.", "continent": "África", "sport": "Fútbol/Rugby", "food": "Romazava", "history": "Independencia de Francia en 1960"},
+  {"id": "mw", "name": "Malaui", "capital": "Lilongüe", "pop": "22,786,000", "gdp": "$14.8B", "lang": "Inglés/Chewa", "religion": "Cristianismo", "attraction": "Lago Malaui", "fact": "Conocido como el 'Corazón Cálido de África'.", "continent": "África", "sport": "Fútbol", "food": "Nsima", "history": "Independencia del Reino Unido en 1964"},
+  {"id": "my", "name": "Malasia", "capital": "Kuala Lumpur", "pop": "36,385,000", "gdp": "$505B", "lang": "Malayo", "religion": "Islam", "attraction": "Torres Petronas", "fact": "Hogar de la cámara de cueva más grande del mundo (Sarawak).", "continent": "Asia", "sport": "Bádminton", "food": "Nasi Lemak", "history": "Independencia en 1957"},
+  {"id": "mv", "name": "Maldivas", "capital": "Malé", "pop": "521,000", "gdp": "$7.6B", "lang": "Dhivehi", "religion": "Islam", "attraction": "Restaurantes submarinos", "fact": "País más bajo del mundo (promedio 1.5m sobre el nivel del mar).", "continent": "Asia", "sport": "Fútbol", "food": "Garudhiya", "history": "Independencia del Reino Unido en 1965"},
+  {"id": "ml", "name": "Malí", "capital": "Bamako", "pop": "25,932,000", "gdp": "$23.4B", "lang": "Francés", "religion": "Islam", "attraction": "Gran Mezquita de Djenné", "fact": "Fue hogar de Mansa Musa, el hombre más rico de la historia.", "continent": "África", "sport": "Fútbol", "food": "Tighade Na", "history": "Independencia de Francia en 1960"},
+  {"id": "mt", "name": "Malta", "capital": "La Valeta", "pop": "535,000", "gdp": "$22.5B", "lang": "Maltés/Inglés", "religion": "Cristianismo", "attraction": "Hipogeo de Hal Saflieni", "fact": "Tiene 365 iglesias, una para cada día del año.", "continent": "Europa", "sport": "Fútbol", "food": "Pastizzi", "history": "Independencia del Reino Unido en 1964"},
+  {"id": "mh", "name": "Islas Marshall", "capital": "Majuro", "pop": "42,000", "gdp": "$0.3B", "lang": "Marshalés/Inglés", "religion": "Cristianismo", "attraction": "Atolón Bikini", "fact": "Hogar del santuario de tiburones más grande del mundo.", "continent": "Oceanía", "sport": "Básquet", "food": "Chukuchuk", "history": "Pacto de Libre Asociación en 1986"},
+  {"id": "mr", "name": "Mauritania", "capital": "Nuakchot", "pop": "4,863,000", "gdp": "$12.1B", "lang": "Árabe", "religion": "Islam", "attraction": "Estructura de Richat", "fact": "Último país en abolir oficialmente la esclavitud (1981).", "continent": "África", "sport": "Fútbol", "food": "Thieboudienne", "history": "Independencia de Francia en 1960"},
+  {"id": "mu", "name": "Mauricio", "capital": "Port Louis", "pop": "1,301,000", "gdp": "$16.5B", "lang": "Inglés/Francés", "religion": "Hinduismo", "attraction": "Tierra de los Siete Colores", "fact": "Único hogar del extinto pájaro Dodo.", "continent": "África", "sport": "Fútbol", "food": "Dholl Puri", "history": "Independencia del Reino Unido en 1968"},
+  {"id": "mx", "name": "México", "capital": "Ciudad de México", "pop": "132,998,000", "gdp": "$2.03T", "lang": "Español", "religion": "Cristianismo", "attraction": "Chichén Itzá", "fact": "La pirámide más grande del mundo está en México (Cholula).", "continent": "Norteamérica", "sport": "Fútbol/Boxeo", "food": "Tacos/Mole", "history": "Grito de Dolores en 1810"},
+  {"id": "fm", "name": "Micronesia", "capital": "Palikir", "pop": "115,000", "gdp": "$0.5B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Nan Madol", "fact": "La isla de Yap usa discos de piedra gigantes como moneda.", "continent": "Oceanía", "sport": "Fútbol", "food": "Ñame machacado", "history": "Pacto de Libre Asociación en 1986"},
+  {"id": "md", "name": "Moldavia", "capital": "Chisináu", "pop": "3,436,000", "gdp": "$18.4B", "lang": "Rumano", "religion": "Cristianismo", "attraction": "Mileștii Mici", "fact": "Tiene la bodega de vino más grande del mundo (200km).", "continent": "Europa", "sport": "Fútbol/Lucha", "food": "Mămăligă", "history": "Independencia de la URSS en 1991"},
+  {"id": "mc", "name": "Mónaco", "capital": "Mónaco", "pop": "36,000", "gdp": "$9.3B", "lang": "Francés", "religion": "Cristianismo", "attraction": "Casino de Montecarlo", "fact": "Más pequeño que el Central Park de Nueva York.", "continent": "Europa", "sport": "F1/Fútbol", "food": "Barbagiuan", "history": "Los Grimaldi toman la Roca en 1297"},
+  {"id": "mn", "name": "Mongolia", "capital": "Ulán Bator", "pop": "3,447,000", "gdp": "$22.1B", "lang": "Mongol", "religion": "Budismo", "attraction": "Desierto de Gobi", "fact": "País soberano con la menor densidad de población del mundo.", "continent": "Asia", "sport": "Lucha", "food": "Buuz", "history": "Independencia de la dinastía Qing en 1911"},
+  {"id": "me", "name": "Montenegro", "capital": "Podgorica", "pop": "626,000", "gdp": "$7.8B", "lang": "Montenegrino", "religion": "Cristianismo", "attraction": "Bahía de Kotor", "fact": "Uno de los países más jóvenes, independiente desde 2006.", "continent": "Europa", "sport": "Fútbol/Básquet", "food": "Kačamak", "history": "Referéndum de Independencia en 2006"},
+  {"id": "ma", "name": "Marruecos", "capital": "Rabat", "pop": "38,762,000", "gdp": "$196B", "lang": "Árabe/Bereber", "religion": "Islam", "attraction": "Plaza Jemaa el-Fnaa", "fact": "La universidad más antigua del mundo está en Fez.", "continent": "África", "sport": "Fútbol", "food": "Tagine/Couscous", "history": "Independencia de Francia/España en 1956"},
+  {"id": "mz", "name": "Mozambique", "capital": "Maputo", "pop": "36,640,000", "gdp": "$24.1B", "lang": "Portugués", "religion": "Cristianismo", "attraction": "Archipiélago de Bazaruto", "fact": "Única bandera nacional con un rifle de asalto moderno.", "continent": "África", "sport": "Fútbol", "food": "Frango a Zambeziana", "history": "Independencia de Portugal en 1975"},
+  {"id": "mm", "name": "Myanmar", "capital": "Naipyidó", "pop": "55,185,000", "gdp": "$74.3B", "lang": "Birmano", "religion": "Budismo", "attraction": "Pagoda Shwedagon", "fact": "El país tiene sus propias unidades de medida.", "continent": "Asia", "sport": "Fútbol/Chinlone", "food": "Mohinga", "history": "Independencia del Reino Unido en 1948"},
+  {"id": "na", "name": "Namibia", "capital": "Windhoek", "pop": "2,604,000", "gdp": "$14.5B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Parque Etosha", "fact": "Hogar del desierto más antiguo del mundo, el Namib.", "continent": "África", "sport": "Rugby", "food": "Kapana", "history": "Independencia de Sudáfrica en 1990"},
+  {"id": "nr", "name": "Nauru", "capital": "Yaren (de facto)", "pop": "13,000", "gdp": "$0.1B", "lang": "Nauruano/Inglés", "religion": "Cristianismo", "attraction": "Command Ridge", "fact": "Único país del mundo sin capital oficial.", "continent": "Oceanía", "sport": "Fútbol Australiano", "food": "Pescado en costra de coco", "history": "Independencia de Australia en 1968"},
+  {"id": "np", "name": "Nepal", "capital": "Katmandú", "pop": "29,629,000", "gdp": "$44.8B", "lang": "Nepalí", "religion": "Hinduismo", "attraction": "Monte Everest", "fact": "Único país con una bandera no rectangular.", "continent": "Asia", "sport": "Cricket/Fútbol", "food": "Dal Bhat", "history": "Fin de la Monarquía en 2008"},
+  {"id": "nl", "name": "Países Bajos", "capital": "Ámsterdam", "pop": "18,449,000", "gdp": "$1.41T", "lang": "Neerlandés", "religion": "Ninguna", "attraction": "Canales de Ámsterdam", "fact": "Tiene más bicicletas que personas.", "continent": "Europa", "sport": "Fútbol", "food": "Stamppot", "history": "Paz de Münster en 1648"},
+  {"id": "nz", "name": "Nueva Zelanda", "capital": "Wellington", "pop": "5,228,000", "gdp": "$281B", "lang": "Inglés/Maorí", "religion": "Cristianismo", "attraction": "Milford Sound", "fact": "Primer país en dar a las mujeres el derecho al voto (1893).", "continent": "Oceanía", "sport": "Rugby", "food": "Hāngī", "history": "Tratado de Waitangi en 1840"},
+  {"id": "ni", "name": "Nicaragua", "capital": "Managua", "pop": "7,046,000", "gdp": "$19.3B", "lang": "Español", "religion": "Cristianismo", "attraction": "Isla de Ometepe", "fact": "Tiene los únicos tiburones de agua dulce del mundo.", "continent": "Norteamérica", "sport": "Béisbol", "food": "Gallo Pinto", "history": "Independencia de España en 1821"},
+  {"id": "ne", "name": "Níger", "capital": "Niamey", "pop": "28,815,000", "gdp": "$20.4B", "lang": "Francés", "religion": "Islam", "attraction": "Montañas de Aïr", "fact": "Conocido como la 'Sartén del Mundo'.", "continent": "África", "sport": "Fútbol", "food": "Estofado Djerma", "history": "Independencia de Francia en 1960"},
+  {"id": "ng", "name": "Nigeria", "capital": "Abuya", "pop": "242,432,000", "gdp": "$334B", "lang": "Inglés", "religion": "Islam/Cristianismo", "attraction": "Zuma Rock", "fact": "Hogar de 'Nollywood', la segunda industria de cine más grande.", "continent": "África", "sport": "Fútbol", "food": "Pounded Yam", "history": "Independencia del Reino Unido en 1960"},
+  {"id": "kp", "name": "Corea del Norte", "capital": "Pyongyang", "pop": "26,634,000", "gdp": "$30B", "lang": "Coreano", "religion": "Ateísmo", "attraction": "Torre Juche", "fact": "Tiene su propio calendario que empieza con el nacimiento de Kim Il-sung.", "continent": "Asia", "sport": "Fútbol", "food": "Naengmyeon", "history": "Fundación de la RPDC en 1948"},
+  {"id": "mk", "name": "Macedonia del Norte", "capital": "Skopie", "pop": "2,083,000", "gdp": "$16.1B", "lang": "Macedonio", "religion": "Cristianismo", "attraction": "Lago Ohrid", "fact": "La Madre Teresa nació en Skopie.", "continent": "Europa", "sport": "Fútbol/Balonmano", "food": "Tavče Gravče", "history": "Independencia de Yugoslavia en 1991"},
+  {"id": "no", "name": "Noruega", "capital": "Oslo", "pop": "5,540,000", "gdp": "$548B", "lang": "Noruego", "religion": "Cristianismo", "attraction": "Fiordo de Geiranger", "fact": "Introdujo el sushi de salmón a los japoneses.", "continent": "Europa", "sport": "Esquí", "food": "Fårikål", "history": "Disolución de la Unión en 1905"},
+  {"id": "om", "name": "Omán", "capital": "Mascate", "pop": "5,200,000", "gdp": "$115B", "lang": "Árabe", "religion": "Islam", "attraction": "Mezquita Sultán Qaboos", "fact": "El estado independiente más antiguo del mundo árabe.", "continent": "Asia", "sport": "Fútbol", "food": "Shuwa", "history": "Expulsión de los portugueses en 1650"},
+  {"id": "pk", "name": "Pakistán", "capital": "Islamabad", "pop": "259,300,000", "gdp": "$410B", "lang": "Urdu/Inglés", "religion": "Islam", "attraction": "Montaña K2", "fact": "Hogar del servicio de ambulancias voluntario más grande del mundo.", "continent": "Asia", "sport": "Cricket/Hockey", "food": "Nihari", "history": "Independencia del Reino Unido en 1947"},
+  {"id": "pw", "name": "Palaos", "capital": "Ngerulmud", "pop": "18,000", "gdp": "$0.3B", "lang": "Palauano/Inglés", "religion": "Cristianismo", "attraction": "Lago de las Medusas", "fact": "Tiene un lago lleno de medusas que no pican.", "continent": "Oceanía", "sport": "Béisbol", "food": "Sopa de murciélago", "history": "Independencia en 1994"},
+  {"id": "ps", "name": "Palestina", "capital": "Jerusalén (proclamada)", "pop": "5,400,000", "gdp": "$20.4B", "lang": "Árabe", "religion": "Islam", "attraction": "Basílica de la Natividad", "fact": "Una de las regiones habitadas continuamente más antiguas.", "continent": "Asia", "sport": "Fútbol", "food": "Maqluba", "history": "Nakba en 1948"},
+  {"id": "pa", "name": "Panamá", "capital": "Ciudad de Panamá", "pop": "4,500,000", "gdp": "$94.1B", "lang": "Español", "religion": "Cristianismo", "attraction": "Canal de Panamá", "fact": "Único lugar donde puedes ver el sol salir sobre el Pacífico.", "continent": "Norteamérica", "sport": "Béisbol/Fútbol", "food": "Sancocho", "history": "Apertura del Canal en 1914"},
+  {"id": "pg", "name": "Papúa Nueva Guinea", "capital": "Puerto Moresby", "pop": "10,948,000", "gdp": "$34.1B", "lang": "Tok Pisin/Inglés", "religion": "Cristianismo", "attraction": "Sendero de Kokoda", "fact": "País con mayor diversidad lingüística (más de 800 idiomas).", "continent": "Oceanía", "sport": "Rugby League", "food": "Mumu", "history": "Independencia de Australia en 1975"},
+  {"id": "py", "name": "Paraguay", "capital": "Asunción", "pop": "6,800,000", "gdp": "$48.3B", "lang": "Español/Guaraní", "religion": "Cristianismo", "attraction": "Represa de Itaipú", "fact": "La mayoría de la gente es bilingüe en español y guaraní.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Sopa Paraguaya", "history": "Independencia de España en 1811"},
+  {"id": "pe", "name": "Perú", "capital": "Lima", "pop": "34,922,000", "gdp": "$327B", "lang": "Español/Quechua", "religion": "Cristianismo", "attraction": "Machu Picchu", "fact": "Tiene más de 3,000 tipos diferentes de patatas.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Ceviche", "history": "Independencia de España en 1821"},
+  {"id": "ph", "name": "Filipinas", "capital": "Manila", "pop": "117,724,000", "gdp": "$534B", "lang": "Filipino/Inglés", "religion": "Cristianismo", "attraction": "Colinas de Chocolate", "fact": "Principal proveedor de enfermeros a la fuerza laboral global.", "continent": "Asia", "sport": "Básquet/Boxeo", "food": "Adobo", "history": "Declaración de Independencia en 1898"},
+  {"id": "pl", "name": "Polonia", "capital": "Varsovia", "pop": "37,843,000", "gdp": "$1.11T", "lang": "Polaco", "religion": "Cristianismo", "attraction": "Castillo de Wawel", "fact": "El castillo más grande del mundo por superficie está aquí (Malbork).", "continent": "Europa", "sport": "Fútbol/Voley", "food": "Bigos/Pierogi", "history": "Independencia restaurada en 1918"},
+  {"id": "pt", "name": "Portugal", "capital": "Lisboa", "pop": "10,395,000", "gdp": "$365B", "lang": "Portugués", "religion": "Cristianismo", "attraction": "Torre de Belém", "fact": "Tiene la librería más antigua del mundo (Bertrand).", "continent": "Europa", "sport": "Fútbol", "food": "Bacalhau", "history": "Tratado de Zamora en 1143"},
+  {"id": "qa", "name": "Catar", "capital": "Doha", "pop": "2,700,000", "gdp": "$239B", "lang": "Árabe", "religion": "Islam", "attraction": "Museo de Arte Islámico", "fact": "Organizó la primera Copa Mundial de la FIFA en el mundo árabe.", "continent": "Asia", "sport": "Fútbol", "food": "Machboos", "history": "Independencia del Reino Unido en 1971"},
+  {"id": "ro", "name": "Rumania", "capital": "Bucarest", "pop": "18,801,000", "gdp": "$445B", "lang": "Rumano", "religion": "Cristianismo", "attraction": "Castillo de Bran (Drácula)", "fact": "Hogar del edificio más pesado del mundo (Palacio del Parlamento).", "continent": "Europa", "sport": "Fútbol/Gimnasia", "food": "Sarmale", "history": "Revolución Rumana en 1989"},
+  {"id": "ru", "name": "Rusia", "capital": "Moscú", "pop": "143,394,000", "gdp": "$2.51T", "lang": "Ruso", "religion": "Cristianismo", "attraction": "Plaza Roja", "fact": "Abarca 11 zonas horarias diferentes.", "continent": "Europa/Asia", "sport": "Hockey/Fútbol", "food": "Borscht", "history": "Victoria en la IIGM en 1945"},
+  {"id": "rw", "name": "Ruanda", "capital": "Kigali", "pop": "14,890,000", "gdp": "$16.4B", "lang": "Kinyarwanda/Francés", "religion": "Cristianismo", "attraction": "Parque de los Volcanes", "fact": "Las bolsas de plástico están estrictamente prohibidas.", "continent": "África", "sport": "Ciclismo", "food": "Isombe", "history": "Independencia de Bélgica en 1962"},
+  {"id": "kn", "name": "San Cristóbal y Nieves", "capital": "Basseterre", "pop": "48,000", "gdp": "$1.1B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Fortaleza Brimstone Hill", "fact": "El país más pequeño de las Américas.", "continent": "Norteamérica", "sport": "Cricket", "food": "Pescado Salado Guisado", "history": "Independencia en 1983"},
+  {"id": "lc", "name": "Santa Lucía", "capital": "Castries", "pop": "180,000", "gdp": "$2.5B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Las Pitons", "fact": "Único país que lleva el nombre de una mujer.", "continent": "Norteamérica", "sport": "Cricket", "food": "Higos verdes y pescado salado", "history": "Independencia en 1979"},
+  {"id": "vc", "name": "San Vicente y las Granadinas", "capital": "Kingstown", "pop": "111,000", "gdp": "$1.1B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Tobago Cays", "fact": "Donde se filmó 'Piratas del Caribe'.", "continent": "Norteamérica", "sport": "Cricket", "food": "Fruta del pan asada", "history": "Independencia en 1979"},
+  {"id": "ws", "name": "Samoa", "capital": "Apia", "pop": "225,000", "gdp": "$0.9B", "lang": "Samoano/Inglés", "religion": "Cristianismo", "attraction": "Trinchera Oceánica To-Sua", "fact": "Se saltaron un día entero (30 de dic, 2011) para cambiar de zona horaria.", "continent": "Oceanía", "sport": "Rugby", "food": "Oka", "history": "Independencia de NZ en 1962"},
+  {"id": "sm", "name": "San Marino", "capital": "San Marino", "pop": "34,000", "gdp": "$1.9B", "lang": "Italiano", "religion": "Cristianismo", "attraction": "Las Tres Torres", "fact": "La república más antigua del mundo.", "continent": "Europa", "sport": "Fútbol", "food": "Torta Tre Monti", "history": "Mito fundacional en 301 d.C."},
+  {"id": "st", "name": "Santo Tomé y Príncipe", "capital": "Santo Tomé", "pop": "232,000", "gdp": "$0.6B", "lang": "Portugués", "religion": "Cristianismo", "attraction": "Pico Cão Grande", "fact": "Conocidas como las 'Islas del Chocolate'.", "continent": "África", "sport": "Fútbol", "food": "Calulu", "history": "Independencia en 1975"},
+  {"id": "sa", "name": "Arabia Saudita", "capital": "Riad", "pop": "35,166,000", "gdp": "$1.32T", "lang": "Árabe", "religion": "Islam", "attraction": "La Meca", "fact": "Único país del mundo sin un solo río.", "continent": "Asia", "sport": "Fútbol", "food": "Kabsa", "history": "Unificación del Reino en 1932"},
+  {"id": "sn", "name": "Senegal", "capital": "Dakar", "pop": "19,367,000", "gdp": "$34.1B", "lang": "Francés", "religion": "Islam", "attraction": "Isla de Goreé", "fact": "Dakar era la meta del famoso rally.", "continent": "África", "sport": "Fútbol", "food": "Thieboudienne", "history": "Independencia de Francia en 1960"},
+  {"id": "rs", "name": "Serbia", "capital": "Belgrado", "pop": "6,700,000", "gdp": "$112B", "lang": "Serbio", "religion": "Cristianismo", "attraction": "Templo de San Sava", "fact": "Nikola Tesla era étnicamente serbio.", "continent": "Europa", "sport": "Fútbol/Básquet", "food": "Sarama", "history": "Primer Levantamiento en 1804"},
+  {"id": "sc", "name": "Seychelles", "capital": "Victoria", "pop": "107,000", "gdp": "$2.1B", "lang": "Criollo/Francés/Inglés", "religion": "Cristianismo", "attraction": "Anse Source d'Argent", "fact": "Tiene la capital más pequeña del mundo (Victoria).", "continent": "África", "sport": "Fútbol", "food": "Curry de pescado", "history": "Independencia en 1976"},
+  {"id": "sl", "name": "Sierra Leona", "capital": "Freetown", "pop": "8,900,000", "gdp": "$4.2B", "lang": "Inglés/Krio", "religion": "Islam/Cristianismo", "attraction": "Cotton Tree", "fact": "Hogar de algunos de los diamantes más raros.", "continent": "África", "sport": "Fútbol", "food": "Hojas de Yuca", "history": "Independencia en 1961"},
+  {"id": "sg", "name": "Singapur", "capital": "Singapur", "pop": "6,000,000", "gdp": "$606B", "lang": "Varios", "religion": "Budismo/Cristianismo", "attraction": "Gardens by the Bay", "fact": "Mascar chicle está prohibido (excepto uso médico).", "continent": "Asia", "sport": "Fútbol", "food": "Arroz con pollo de Hainan", "history": "Separación de Malasia en 1965"},
+  {"id": "sk", "name": "Eslovaquia", "capital": "Bratislava", "pop": "5,400,000", "gdp": "$168B", "lang": "Eslovaco", "religion": "Cristianismo", "attraction": "Tatras Altos", "fact": "Tiene la mayor cantidad de castillos per cápita.", "continent": "Europa", "sport": "Hockey/Fútbol", "food": "Bryndzové Halušky", "history": "Divorcio de Terciopelo en 1993"},
+  {"id": "si", "name": "Eslovenia", "capital": "Liubliana", "pop": "2,100,000", "gdp": "$75.1B", "lang": "Esloveno", "religion": "Cristianismo", "attraction": "Lago Bled", "fact": "Único país con 'LOVE' en su nombre.", "continent": "Europa", "sport": "Esquí/Básquet", "food": "Štruklji", "history": "Independencia en 1991"},
+  {"id": "sb", "name": "Islas Salomón", "capital": "Honiara", "pop": "750,000", "gdp": "$1.7B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Isla Kennedy", "fact": "Lleva el nombre del bíblico Rey Salomón.", "continent": "Oceanía", "sport": "Fútbol", "food": "Poi", "history": "Independencia en 1978"},
+  {"id": "so", "name": "Somalia", "capital": "Mogadiscio", "pop": "20,306,000", "gdp": "$12.1B", "lang": "Somalí/Árabe", "religion": "Islam", "attraction": "Laas Geel", "fact": "Más de la mitad de los camellos del mundo viven aquí.", "continent": "África", "sport": "Fútbol", "food": "Bariis Iskukaris", "history": "Independencia en 1960"},
+  {"id": "za", "name": "Sudáfrica", "capital": "Pretoria/Ciudad del Cabo", "pop": "65,453,000", "gdp": "$444B", "lang": "12 Idiomas", "religion": "Cristianismo", "attraction": "Table Mountain", "fact": "Único país con tres ciudades capitales.", "continent": "África", "sport": "Rugby/Cricket", "food": "Braai", "history": "Fin del Apartheid en 1994"},
+  {"id": "kr", "name": "Corea del Sur", "capital": "Seúl", "pop": "51,600,000", "gdp": "$1.94T", "lang": "Coreano", "religion": "Ninguna/Cristianismo", "attraction": "Palacio Gyeongbokgung", "fact": "Los E-sports son considerados un deporte nacional.", "continent": "Asia", "sport": "Fútbol/Béisbol", "food": "Kimchi", "history": "Acuerdo de Armisticio en 1953"},
+  {"id": "ss", "name": "Sudán del Sur", "capital": "Yuba", "pop": "12,436,000", "gdp": "$7.1B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Parque Boma", "fact": "El país reconocido más nuevo del mundo (2011).", "continent": "África", "sport": "Básquet", "food": "Kisra", "history": "Independencia en 2011"},
+  {"id": "es", "name": "España", "capital": "Madrid", "pop": "47,851,000", "gdp": "$2.04T", "lang": "Español", "religion": "Cristianismo", "attraction": "Sagrada Família", "fact": "El único país con un himno nacional sin letra.", "continent": "Europa", "sport": "Fútbol", "food": "Paella", "history": "Reconquista y viaje de Colón en 1492"},
+  {"id": "lk", "name": "Sri Lanka", "capital": "Kotte", "pop": "23,348,000", "gdp": "$82.1B", "lang": "Cingalés/Tamil", "religion": "Budismo", "attraction": "Sigiriya", "fact": "La primera mujer primera ministra del mundo fue elegida aquí.", "continent": "Asia", "sport": "Cricket", "food": "Rice and Curry", "history": "Independencia en 1948"},
+  {"id": "sd", "name": "Sudán", "capital": "Jartum", "pop": "53,283,000", "gdp": "$25.1B", "lang": "Árabe/Inglés", "religion": "Islam", "attraction": "Pirámides de Meroë", "fact": "Tiene más pirámides que Egipto.", "continent": "África", "sport": "Fútbol", "food": "Ful Medames", "history": "Independencia en 1956"},
+  {"id": "sr", "name": "Surinam", "capital": "Paramaribo", "pop": "630,000", "gdp": "$4.1B", "lang": "Neerlandés", "religion": "Cristianismo/Hinduismo", "attraction": "Reserva Central", "fact": "Aproximadamente el 90% del país es selva virgen.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Pom", "history": "Independencia en 1975"},
+  {"id": "se", "name": "Suecia", "capital": "Estocolmo", "pop": "10,701,000", "gdp": "$712B", "lang": "Sueco", "religion": "Ninguna", "attraction": "Museo Vasa", "fact": "Tiene la mayor cantidad de islas del mundo (más de 220,000).", "continent": "Europa", "sport": "Hockey/Fútbol", "food": "Köttbullar", "history": "Elección de Gustav Vasa en 1523"},
+  {"id": "ch", "name": "Suiza", "capital": "Berna", "pop": "8,900,000", "gdp": "$1.07T", "lang": "Varios", "religion": "Cristianismo", "attraction": "Cervino (Matterhorn)", "fact": "La Cruz Roja fue fundada aquí en 1863.", "continent": "Europa", "sport": "Fútbol/Esquí", "food": "Fondue", "history": "Carta Federal en 1291"},
+  {"id": "sy", "name": "Siria", "capital": "Damasco", "pop": "26,472,000", "gdp": "$20B", "lang": "Árabe", "religion": "Islam", "attraction": "Mezquita de los Omeyas", "fact": "Damasco es considerada la ciudad habitada más antigua del mundo.", "continent": "Asia", "sport": "Fútbol", "food": "Kibbeh", "history": "Independencia en 1946"},
+  {"id": "tw", "name": "Taiwán", "capital": "Taipéi", "pop": "23,289,000", "gdp": "$971B", "lang": "Mandarín", "religion": "Budismo/Taoísmo", "attraction": "Taipei 101", "fact": "Los camiones de basura tocan música clásica.", "continent": "Asia", "sport": "Béisbol", "food": "Sopa de fideos con ternera", "history": "Reubicación del Gob. ROC en 1949"},
+  {"id": "tj", "name": "Tayikistán", "capital": "Dusambé", "pop": "10,979,000", "gdp": "$14.1B", "lang": "Tayiko", "religion": "Islam", "attraction": "Montañas Pamir", "fact": "Tiene la segunda presa más alta del mundo.", "continent": "Asia", "sport": "Lucha", "food": "Plov", "history": "Independencia de la URSS en 1991"},
+  {"id": "tz", "name": "Tanzania", "capital": "Dodoma", "pop": "72,564,000", "gdp": "$90B", "lang": "Suajili/Inglés", "religion": "Cristianismo/Islam", "attraction": "Monte Kilimanjaro", "fact": "Hogar de la guerra más corta de la historia (38 minutos).", "continent": "África", "sport": "Fútbol", "food": "Ugali", "history": "Unión en 1964"},
+  {"id": "th", "name": "Tailandia", "capital": "Bangkok", "pop": "71,560,000", "gdp": "$562B", "lang": "Tailandés", "religion": "Budismo", "attraction": "Gran Palacio", "fact": "El nombre completo de Bangkok es el nombre de ciudad más largo.", "continent": "Asia", "sport": "Muay Thai", "food": "Pad Thai", "history": "Fundación de Bangkok en 1782"},
+  {"id": "tl", "name": "Timor Oriental", "capital": "Dili", "pop": "1,400,000", "gdp": "$2.1B", "lang": "Tetum/Portugués", "religion": "Cristianismo", "attraction": "Cristo Rei", "fact": "Uno de los dos únicos países católicos en Asia.", "continent": "Asia", "sport": "Fútbol", "food": "Ikan Sabuko", "history": "Restauración de Independencia en 2002"},
+  {"id": "tg", "name": "Togo", "capital": "Lomé", "pop": "9,931,000", "gdp": "$9.8B", "lang": "Francés", "religion": "Cristianismo/Folk", "attraction": "Mercado Akodessewa", "fact": "Hogar del mercado de vudú más grande del mundo.", "continent": "África", "sport": "Fútbol", "food": "Fufu", "history": "Independencia en 1960"},
+  {"id": "to", "name": "Tonga", "capital": "Nuku'alofa", "pop": "108,000", "gdp": "$0.5B", "lang": "Tongano/Inglés", "religion": "Cristianismo", "attraction": "Ha'amonga 'a Maui", "fact": "Conocidas como las 'Islas Amigas'.", "continent": "Oceanía", "sport": "Rugby", "food": "Ota Ika", "history": "Independencia en 1970"},
+  {"id": "tt", "name": "Trinidad y Tobago", "capital": "Puerto España", "pop": "1,530,000", "gdp": "$30.1B", "lang": "Inglés", "religion": "Cristianismo/Hinduismo", "attraction": "Lago de Brea", "fact": "Inventó el steelpan, el único instrumento acústico nuevo del S. XX.", "continent": "Norteamérica", "sport": "Cricket/Fútbol", "food": "Doubles", "history": "Independencia en 1962"},
+  {"id": "tn", "name": "Túnez", "capital": "Túnez", "pop": "12,415,000", "gdp": "$54.1B", "lang": "Árabe", "religion": "Islam", "attraction": "Cartago", "fact": "Famoso como lugar de rodaje de 'Star Wars'.", "continent": "África", "sport": "Fútbol", "food": "Couscous", "history": "Independencia en 1956"},
+  {"id": "tr", "name": "Turquía", "capital": "Ankara", "pop": "87,926,000", "gdp": "$1.58T", "lang": "Turco", "religion": "Islam", "attraction": "Santa Sofía", "fact": "El único país situado en dos continentes.", "continent": "Asia/Europa", "sport": "Fútbol", "food": "Kebab", "history": "Proclamación de la República en 1923"},
+  {"id": "tm", "name": "Turkmenistán", "capital": "Asjabad", "pop": "6,600,000", "gdp": "$82.1B", "lang": "Turcomano", "religion": "Islam", "attraction": "Cráter de Gas Darvaza", "fact": "La 'Puerta al Infierno' lleva ardiendo desde 1971.", "continent": "Asia", "sport": "Fútbol/Lucha", "food": "Ichlekli", "history": "Independencia de la URSS en 1991"},
+  {"id": "tv", "name": "Tuvalu", "capital": "Funafuti", "pop": "11,000", "gdp": "$0.06B", "lang": "Tuvaluano/Inglés", "religion": "Cristianismo", "attraction": "Atolón Funafuti", "fact": "Gana millones alquilando su dominio de internet '.tv'.", "continent": "Oceanía", "sport": "Fútbol", "food": "Pulaka", "history": "Independencia en 1978"},
+  {"id": "ug", "name": "Uganda", "capital": "Kampala", "pop": "52,761,000", "gdp": "$55.1B", "lang": "Inglés/Suajili", "religion": "Cristianismo", "attraction": "Bosque Impenetrable de Bwindi", "fact": "Conocida como la 'Perla de África'.", "continent": "África", "sport": "Fútbol", "food": "Matooke", "history": "Independencia en 1962"},
+  {"id": "ua", "name": "Ucrania", "capital": "Kyiv", "pop": "39,536,000", "gdp": "$224B", "lang": "Ucraniano", "religion": "Cristianismo", "attraction": "Catedral de Santa Sofía", "fact": "Inventó el avión más pesado del mundo (An-225 Mriya).", "continent": "Europa", "sport": "Fútbol/Boxeo", "food": "Borscht", "history": "Independencia de la URSS en 1991"},
+  {"id": "ae", "name": "Emiratos Árabes Unidos", "capital": "Abu Dabi", "pop": "11,575,000", "gdp": "$601B", "lang": "Árabe", "religion": "Islam", "attraction": "Burj Khalifa", "fact": "La policía de Dubái usa superdeportivos como Lamborghinis.", "continent": "Asia", "sport": "Fútbol/Cricket", "food": "Harees", "history": "Federación de Emiratos en 1971"},
+  {"id": "gb", "name": "Reino Unido", "capital": "Londres", "pop": "69,932,000", "gdp": "$4.23T", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Stonehenge", "fact": "Único país del mundo que no pone su nombre en los sellos postales.", "continent": "Europa", "sport": "Fútbol/Cricket", "food": "Roast Beef", "history": "Conquista Normanda en 1066"},
+  {"id": "us", "name": "Estados Unidos", "capital": "Washington, D.C.", "pop": "349,035,000", "gdp": "$31.82T", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Estatua de la Libertad", "fact": "Tiene un tercio de todos los aeropuertos del mundo.", "continent": "Norteamérica", "sport": "Fútbol Americano", "food": "Hamburguesa", "history": "Declaración de Independencia en 1776"},
+  {"id": "uy", "name": "Uruguay", "capital": "Montevideo", "pop": "3,423,000", "gdp": "$85.1B", "lang": "Español", "religion": "Ninguna/Cristianismo", "attraction": "Punta del Este", "fact": "Primer país en legalizar completamente la marihuana.", "continent": "Sudamérica", "sport": "Fútbol", "food": "Chivito", "history": "Independencia de Brasil en 1825"},
+  {"id": "uz", "name": "Uzbekistán", "capital": "Taskent", "pop": "37,724,000", "gdp": "$159B", "lang": "Uzbeko", "religion": "Islam", "attraction": "Registán", "fact": "Uno de los dos únicos países doblemente sin litoral.", "continent": "Asia", "sport": "Fútbol/Boxeo", "food": "Plov", "history": "Independencia de la URSS en 1991"},
+  {"id": "vu", "name": "Vanuatu", "capital": "Port Vila", "pop": "330,000", "gdp": "$1.2B", "lang": "Bislama/Inglés/Francés", "religion": "Cristianismo", "attraction": "Monte Yasur", "fact": "Cuna del salto en bungee (salto de tierra).", "continent": "Oceanía", "sport": "Fútbol/Cricket", "food": "Laplap", "history": "Independencia en 1980"},
+  {"id": "va", "name": "Ciudad del Vaticano", "capital": "Ciudad del Vaticano", "pop": "800", "gdp": "N/A", "lang": "Italiano/Latín", "religion": "Cristianismo", "attraction": "Basílica de San Pedro", "fact": "El país más pequeño del mundo.", "continent": "Europa", "sport": "Fútbol", "food": "Hostia/Vino", "history": "Tratado de Letrán en 1929"},
+  {"id": "ve", "name": "Venezuela", "capital": "Caracas", "pop": "28,634,000", "gdp": "$100B", "lang": "Español", "religion": "Cristianismo", "attraction": "Salto Ángel", "fact": "Hogar de la cascada más alta del mundo.", "continent": "Sudamérica", "sport": "Béisbol", "food": "Arepas", "history": "Declaración de Independencia en 1811"},
+  {"id": "vn", "name": "Vietnam", "capital": "Hanói", "pop": "102,177,000", "gdp": "$511B", "lang": "Vietnamita", "religion": "Ninguna/Budismo", "attraction": "Bahía de Ha Long", "fact": "Mayor exportador mundial de anacardos y pimienta negra.", "continent": "Asia", "sport": "Fútbol", "food": "Pho", "history": "Declaración de Independencia en 1945"},
+  {"id": "ye", "name": "Yemen", "capital": "Saná", "pop": "42,962,000", "gdp": "$25.1B", "lang": "Árabe", "religion": "Islam", "attraction": "Ciudad Vieja de Shibam", "fact": "Conocida como la 'Manhattan del Desierto' por sus rascacielos de barro.", "continent": "Asia", "sport": "Fútbol", "food": "Mandi", "history": "Unificación en 1990"},
+  {"id": "zm", "name": "Zambia", "capital": "Lusaka", "pop": "22,522,000", "gdp": "$32.4B", "lang": "Inglés", "religion": "Cristianismo", "attraction": "Cataratas Victoria", "fact": "Hogar de algunos de los mejores safaris a pie del mundo.", "continent": "África", "sport": "Fútbol", "food": "Nshima", "history": "Independencia en 1964"},
+  {"id": "zw", "name": "Zimbabue", "capital": "Harare", "pop": "17,274,000", "gdp": "$35.1B", "lang": "16 Idiomas", "religion": "Cristianismo", "attraction": "Gran Zimbabue", "fact": "El rocío de las Cataratas Victoria se ve a 50 km de distancia.", "continent": "África", "sport": "Fútbol/Cricket", "food": "Sadza", "history": "Independencia en 1980"}
+];
+
+const continents = ["Todos", "África", "Asia", "Europa", "Norteamérica", "Sudamérica", "Oceanía"];
+
+export default function App() {
+  const [view, setView] = useState("explore"); // "explore" o "quiz"
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedContinent, setSelectedContinent] = useState("Todos");
+  const [selectedCountry, setSelectedCountry] = useState(null);
+
+  // Estados del Quiz
+  const [quizState, setQuizState] = useState({
+    active: false,
+    question: null,
+    options: [],
+    answer: null,
+    score: 0,
+    total: 0,
+    feedback: null, // "correct", "wrong"
+    history: []
+  });
+
+  // Generar nueva pregunta
+  const generateQuestion = () => {
+    const randomIdx = Math.floor(Math.random() * countryData.length);
+    const country = countryData[randomIdx];
+    const types = ["capital", "flag", "fact", "food"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    // Obtener 3 distractores
+    let distractors = [];
+    while (distractors.length < 3) {
+      const dIdx = Math.floor(Math.random() * countryData.length);
+      const dCountry = countryData[dIdx];
+      if (dIdx !== randomIdx && !distractors.find(d => d.id === dCountry.id)) {
+        distractors.push(dCountry);
+      }
+    }
+
+    let questionText = "";
+    let correctAnswer = "";
+    let options = [];
+
+    switch(type) {
+      case "capital":
+        questionText = `¿Cuál es la capital de ${country.name}?`;
+        correctAnswer = country.capital;
+        options = [country.capital, ...distractors.map(d => d.capital)];
+        break;
+      case "flag":
+        questionText = "¿A qué país pertenece esta bandera?";
+        correctAnswer = country.name;
+        options = [country.name, ...distractors.map(d => d.name)];
+        break;
+      case "food":
+        questionText = `¿Cuál es el plato típico de ${country.name}?`;
+        correctAnswer = country.food;
+        options = [country.food, ...distractors.map(d => d.food)];
+        break;
+      case "fact":
+        questionText = `País donde "${country.fact}"`;
+        correctAnswer = country.name;
+        options = [country.name, ...distractors.map(d => d.name)];
+        break;
+    }
+
+    // Barajar opciones
+    options = options.sort(() => Math.random() - 0.5);
+
+    setQuizState(prev => ({
+      ...prev,
+      question: { text: questionText, type, country },
+      options,
+      answer: correctAnswer,
+      feedback: null
+    }));
+  };
+
+  const startQuiz = () => {
+    setView("quiz");
+    setQuizState({
+      active: true,
+      score: 0,
+      total: 0,
+      feedback: null,
+      history: []
+    });
+    generateQuestion();
+  };
+
+  const handleOptionSelect = (option) => {
+    if (quizState.feedback) return;
+
+    const isCorrect = option === quizState.answer;
+    setQuizState(prev => ({
+      ...prev,
+      feedback: isCorrect ? "correct" : "wrong",
+      score: isCorrect ? prev.score + 1 : prev.score,
+      total: prev.total + 1
+    }));
+  };
+
+  const nextQuestion = () => {
+    generateQuestion();
+  };
+
+  const filteredCountries = useMemo(() => {
+    return countryData.filter(c => {
+      const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            c.capital.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesContinent = selectedContinent === "Todos" || c.continent.includes(selectedContinent);
+      return matchesSearch && matchesContinent;
+    });
+  }, [searchTerm, selectedContinent]);
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+      {/* Header */}
+      <header className="bg-indigo-700 text-white shadow-lg sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-white p-2 rounded-xl text-indigo-700 shadow-inner">
+              <Globe size={32} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">MundoExplora</h1>
+              <p className="text-indigo-100 text-xs hidden sm:block">Enciclopedia de 195 Naciones</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 flex-grow max-w-2xl">
+            {view === "explore" && (
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                <input 
+                  type="text"
+                  placeholder="Buscar país o capital..."
+                  className="w-full pl-10 pr-4 py-2 rounded-full border-none focus:ring-4 focus:ring-indigo-300 text-slate-900 shadow-inner"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            )}
+            
+            <button 
+              onClick={view === "explore" ? startQuiz : () => setView("explore")}
+              className={`flex items-center gap-2 px-6 py-2 rounded-full font-bold transition-all shadow-md whitespace-nowrap
+                ${view === "explore" 
+                  ? "bg-amber-400 text-amber-950 hover:bg-amber-300" 
+                  : "bg-indigo-600 text-white hover:bg-indigo-500 border border-indigo-400"}`}
+            >
+              {view === "explore" ? (
+                <><Brain size={20} /> Modo Examen</>
+              ) : (
+                <><Globe size={20} /> Volver a Explorar</>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        
+        {view === "explore" ? (
+          <>
+            {/* Filters */}
+            <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">
+              <Filter size={20} className="text-slate-400 flex-shrink-0" />
+              {continents.map(cont => (
+                <button
+                  key={cont}
+                  onClick={() => setSelectedContinent(cont)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap shadow-sm
+                    ${selectedContinent === cont 
+                      ? 'bg-indigo-600 text-white ring-2 ring-indigo-200' 
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
+                >
+                  {cont}
+                </button>
+              ))}
+            </div>
+
+            <p className="mb-6 text-slate-500 font-medium">
+              Mostrando <span className="text-indigo-600">{filteredCountries.length}</span> países soberanos
+            </p>
+
+            {/* Grid de Países */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredCountries.map(country => (
+                <div 
+                  key={country.id}
+                  onClick={() => setSelectedCountry(country)}
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border border-slate-100 flex flex-col"
+                >
+                  <div className="h-40 bg-slate-200 relative overflow-hidden">
+                    <img 
+                      src={`https://flagcdn.com/w640/${country.id}.png`} 
+                      alt={`Bandera de ${country.name}`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => e.target.src = `https://via.placeholder.com/640x480?text=${country.name}`}
+                    />
+                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold shadow-sm">
+                      {country.continent}
+                    </div>
+                  </div>
+                  
+                  <div className="p-5 flex-grow">
+                    <h2 className="text-xl font-bold mb-1 group-hover:text-indigo-600 transition-colors">{country.name}</h2>
+                    <div className="flex items-center gap-2 text-slate-500 text-sm mb-4">
+                      <MapPin size={14} />
+                      <span>{country.capital}</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      <div>Población</div>
+                      <div>GDP</div>
+                      <div className="text-slate-700">{country.pop}</div>
+                      <div className="text-slate-700">{country.gdp}</div>
+                    </div>
+                  </div>
+
+                  <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-indigo-600 font-medium text-sm">
+                    <span>Ver detalles</span>
+                    <Globe size={16} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          /* VISTA DEL QUIZ */
+          <div className="max-w-2xl mx-auto py-10">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
+              {/* Header Quiz */}
+              <div className="bg-indigo-700 p-8 text-white flex justify-between items-end">
+                <div>
+                  <h2 className="text-3xl font-black mb-1 italic">EXAMEN GLOBAL</h2>
+                  <p className="text-indigo-200 text-sm font-medium">Pregunta {quizState.total + 1}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs uppercase font-bold tracking-widest text-indigo-300">Puntuación</p>
+                  <p className="text-4xl font-black">{quizState.score}<span className="text-indigo-400 text-xl">/{quizState.total}</span></p>
+                </div>
+              </div>
+
+              {/* Cuerpo Quiz */}
+              <div className="p-8">
+                {quizState.question && (
+                  <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+                    <div className="text-center space-y-4">
+                      <h3 className="text-2xl font-bold text-slate-800 leading-tight">
+                        {quizState.question.text}
+                      </h3>
+                      
+                      {quizState.question.type === "flag" && (
+                        <div className="flex justify-center">
+                          <img 
+                            src={`https://flagcdn.com/w640/${quizState.question.country.id}.png`}
+                            className="h-32 rounded-xl shadow-lg border-4 border-slate-100"
+                            alt="Bandera misteriosa"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      {quizState.options.map((opt, i) => {
+                        let btnStyle = "bg-slate-50 border-2 border-slate-100 text-slate-700 hover:border-indigo-300 hover:bg-indigo-50";
+                        
+                        if (quizState.feedback) {
+                          if (opt === quizState.answer) {
+                            btnStyle = "bg-emerald-50 border-emerald-500 text-emerald-700 ring-4 ring-emerald-100";
+                          } else if (quizState.feedback === "wrong") {
+                            btnStyle = "bg-rose-50 border-rose-200 text-rose-400 opacity-60";
+                          } else {
+                            btnStyle = "opacity-40";
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={i}
+                            disabled={!!quizState.feedback}
+                            onClick={() => handleOptionSelect(opt)}
+                            className={`w-full p-4 rounded-2xl text-left font-bold transition-all flex items-center justify-between group ${btnStyle}`}
+                          >
+                            <span>{opt}</span>
+                            {!quizState.feedback && <ArrowRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity" />}
+                            {quizState.feedback && opt === quizState.answer && <CheckCircle2 size={22} className="text-emerald-500" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {quizState.feedback && (
+                      <div className={`p-6 rounded-2xl flex flex-col items-center gap-4 animate-in zoom-in duration-300
+                        ${quizState.feedback === "correct" ? "bg-emerald-50 border border-emerald-100" : "bg-rose-50 border border-rose-100"}`}>
+                        <div className="flex items-center gap-3">
+                          {quizState.feedback === "correct" ? (
+                            <div className="bg-emerald-500 p-2 rounded-full text-white"><CheckCircle2 size={24} /></div>
+                          ) : (
+                            <div className="bg-rose-500 p-2 rounded-full text-white"><AlertCircle size={24} /></div>
+                          )}
+                          <div>
+                            <p className={`font-black text-xl ${quizState.feedback === "correct" ? "text-emerald-700" : "text-rose-700"}`}>
+                              {quizState.feedback === "correct" ? "¡Excelente!" : "Casi lo logras"}
+                            </p>
+                            <p className="text-sm text-slate-500 italic">
+                              La respuesta correcta era: <span className="font-bold text-slate-800">{quizState.answer}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <button 
+                          onClick={nextQuestion}
+                          className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black tracking-widest hover:bg-slate-800 transition-colors"
+                        >
+                          SIGUIENTE PREGUNTA
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-center gap-4">
+                <button 
+                  onClick={startQuiz}
+                  className="text-slate-400 hover:text-indigo-600 flex items-center gap-1 text-xs font-bold uppercase transition-colors"
+                >
+                  <RotateCcw size={14} /> Reiniciar Examen
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {view === "explore" && filteredCountries.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+            <Search size={48} className="mx-auto text-slate-300 mb-4" />
+            <h3 className="text-xl font-bold text-slate-600">No encontramos ningún país</h3>
+            <p className="text-slate-400">Intenta con otro término de búsqueda o filtro</p>
+          </div>
+        )}
+      </main>
+
+      {/* Modal de Detalle */}
+      {selectedCountry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
+            <button 
+              onClick={() => setSelectedCountry(null)}
+              className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/40 backdrop-blur p-2 rounded-full text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-indigo-900">
+              <img 
+                src={`https://flagcdn.com/w1280/${selectedCountry.id}.png`} 
+                alt={selectedCountry.name}
+                className="w-full h-full object-cover opacity-80"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-indigo-950 via-transparent to-transparent"></div>
+              <div className="absolute bottom-8 left-8 text-white">
+                <h2 className="text-4xl font-black mb-2 leading-tight">{selectedCountry.name}</h2>
+                <div className="flex items-center gap-2 text-indigo-200">
+                  <MapPin size={20} />
+                  <span className="text-xl">{selectedCountry.capital}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full md:w-1/2 p-8 overflow-y-auto bg-white">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                    <Users className="text-indigo-600 mb-1" size={18} />
+                    <p className="text-[10px] text-indigo-400 font-bold uppercase">Población</p>
+                    <p className="font-bold">{selectedCountry.pop}</p>
+                  </div>
+                  <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                    <Coins className="text-emerald-600 mb-1" size={18} />
+                    <p className="text-[10px] text-emerald-400 font-bold uppercase">PIB Proyectado</p>
+                    <p className="font-bold">{selectedCountry.gdp}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <DetailItem icon={<Languages size={18}/>} title="Idioma y Religión" value={`${selectedCountry.lang} • ${selectedCountry.religion}`} />
+                  <DetailItem icon={<Landmark size={18}/>} color="bg-orange-100 text-orange-600" title="Atracción" value={selectedCountry.attraction} />
+                  <DetailItem icon={<Trophy size={18}/>} color="bg-blue-100 text-blue-600" title="Deporte Popular" value={selectedCountry.sport} />
+                  <DetailItem icon={<Utensils size={18}/>} color="bg-red-100 text-red-600" title="Plato Típico" value={selectedCountry.food} />
+                  <DetailItem icon={<History size={18}/>} color="bg-amber-100 text-amber-600" title="Evento Histórico" value={selectedCountry.history} />
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Ubicación Estilizada</h4>
+                  <div className="aspect-video bg-slate-50 rounded-2xl flex items-center justify-center relative overflow-hidden group">
+                    <img 
+                      src={`https://raw.githubusercontent.com/djaiss/mapsicon/master/all/${selectedCountry.id}/1024/vector.svg`}
+                      alt={`Mapa de ${selectedCountry.name}`}
+                      className="w-1/2 h-1/2 object-contain opacity-20 transition-transform duration-700 group-hover:scale-125"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                       <p className="text-slate-400 text-xs font-bold uppercase tracking-widest text-center px-8">
+                         {selectedCountry.continent}
+                       </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 p-6 rounded-2xl border-l-4 border-amber-400">
+                  <div className="flex items-center gap-2 text-amber-600 font-bold mb-1">
+                    <Info size={18} />
+                    <span>Dato curioso</span>
+                  </div>
+                  <p className="text-amber-800 italic text-sm leading-relaxed">"{selectedCountry.fact}"</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-slate-900 text-slate-500 py-12 mt-20 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex justify-center gap-2 mb-4">
+            <Globe className="text-indigo-500" />
+            <span className="text-white font-bold tracking-widest uppercase">MundoExplora 2026</span>
+          </div>
+          <p className="max-w-md mx-auto text-xs leading-relaxed mb-8 uppercase tracking-tighter">
+            Todos los países soberanos en una sola plataforma interactiva.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function DetailItem({ icon, title, value, color = "bg-slate-100 text-slate-600" }) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className={`p-2 rounded-lg ${color}`}>{icon}</div>
+      <div>
+        <h4 className="font-bold text-slate-800 text-sm">{title}</h4>
+        <p className="text-slate-500 text-xs">{value}</p>
+      </div>
+    </div>
+  );
+}
